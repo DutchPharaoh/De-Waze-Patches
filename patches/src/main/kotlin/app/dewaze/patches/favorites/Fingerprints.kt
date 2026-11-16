@@ -1,4 +1,4 @@
-package app.wazefav.patches.favorites
+package app.dewaze.patches.favorites
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.fieldAccess

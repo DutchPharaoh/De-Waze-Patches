@@ -1,4 +1,4 @@
-package app.wazefav.patches.shared
+package app.dewaze.patches.shared
 
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget

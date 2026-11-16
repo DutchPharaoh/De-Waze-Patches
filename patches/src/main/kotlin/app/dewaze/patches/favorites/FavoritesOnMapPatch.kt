@@ -1,15 +1,15 @@
-package app.wazefav.patches.favorites
+package app.dewaze.patches.favorites
 
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.addInstructionsAtControlFlowLabel
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.wazefav.patches.shared.Constants.COMPATIBILITY_WAZE
+import app.dewaze.patches.shared.Constants.COMPATIBILITY_WAZE
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
-private const val EXTENSION_CLASS = "Lapp/wazefav/extension/FavoritesOnMapPatch;"
+private const val EXTENSION_CLASS = "Lapp/dewaze/extension/FavoritesOnMapPatch;"
 private const val DRIVE_TO_MANAGER_BASE = "Lcom/waze/navigate/DriveToNativeManagerBase;"
 
 @Suppress("unused")

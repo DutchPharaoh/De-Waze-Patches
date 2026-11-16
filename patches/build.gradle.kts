@@ -1,10 +1,9 @@
-group = "app.wazefav"
+group = "app.dewaze"
 
 patches {
-    // TODO: Update this section with your project details.
     about {
-        name = "Waze Favorites Patches"
-        description = "Shows Waze favorites as stars on the map"
+        name = "De-Waze Patches"
+        description = "Morphe patches that add features to Waze"
         source = "git@github.com:DutchPharaoh/De-Waze-Patches.git"
         author = "Karim"
         contact = "na"

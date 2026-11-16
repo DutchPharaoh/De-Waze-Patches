@@ -1,4 +1,4 @@
-rootProject.name = "waze-favorites-patches"
+rootProject.name = "de-waze-patches"
 
 pluginManagement {
     repositories {

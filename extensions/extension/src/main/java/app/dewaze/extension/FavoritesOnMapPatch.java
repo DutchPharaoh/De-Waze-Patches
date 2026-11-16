@@ -1,4 +1,4 @@
-package app.wazefav.extension;
+package app.dewaze.extension;
 
 import android.content.Context;
 import android.graphics.Bitmap;

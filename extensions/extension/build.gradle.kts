@@ -3,5 +3,5 @@ extension {
 }
 
 android {
-    namespace = "app.wazefav.extension"
+    namespace = "app.dewaze.extension"
 }
