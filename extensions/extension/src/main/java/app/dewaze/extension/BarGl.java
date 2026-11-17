@@ -45,7 +45,9 @@ final class BarGl {
     static final float BAR_CENTER_FROM_VISIBLE_RIGHT_DP = 50f;
     /** Fallback while the visible area is not known: centre from the right edge of the surface. */
     static final float BAR_CENTER_FROM_RIGHT_DP = 38f;
-    static final float BAR_WIDTH_DP = 32f;
+    static final float BAR_WIDTH_DP = 44f;
+    /** Width of the painted area: the bar plus room for the distance labels, which are wider. */
+    static final float BAR_CANVAS_WIDTH_DP = 92f;
     /** Just below the top-right button row (search, routes, sound). */
     static final float BAR_TOP_DP = 82f;
     /** Distance from the bottom of the map: just above the +/- zoom button. */
@@ -55,6 +57,7 @@ final class BarGl {
 
     /** Size of the bar in pixels on the current car surface (0 until a surface is set up). */
     static volatile int barWidthPx;
+    static volatile int canvasWidthPx;
     static volatile int barHeightPx;
 
     private static final String VERTEX_SHADER =
@@ -118,6 +121,7 @@ final class BarGl {
         private final float px;
         private final float barTop;
         private final float barWidth;
+        private final float canvasWidth;
         private final float barHeight;
         private final HandlerThread thread;
         private final Handler handler;
@@ -144,6 +148,7 @@ final class BarGl {
             this.height = height;
             px = (dpi > 0 ? dpi : 160) / 160f;
             barWidth = BAR_WIDTH_DP * px;
+            canvasWidth = BAR_CANVAS_WIDTH_DP * px;
             barTop = BAR_TOP_DP * px;
             barHeight = Math.max(barWidth * 2, height - BAR_BOTTOM_FROM_BOTTOM_DP * px - barTop);
             thread = new HandlerThread(RouteAlertsBarPatch.TAG + "-gl");
@@ -233,6 +238,7 @@ final class BarGl {
             inputSurface = new Surface(surfaceTexture);
 
             barWidthPx = Math.round(barWidth);
+            canvasWidthPx = Math.round(canvasWidth);
             barHeightPx = Math.round(barHeight);
             RouteAlertsBarPatch.AlertsSource.invalidate();
             RouteAlertsBarPatch.reportOnce("surface-" + width + "x" + height,
@@ -291,9 +297,10 @@ final class BarGl {
                     GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
                     uploaded = bitmap;
                 }
-                float barLeft = barCenterX() - barWidth / 2f;
+                // The bitmap is wider than the bar (labels); the bar sits in its middle.
+                float barLeft = barCenterX() - canvasWidth / 2f;
                 drawQuad(barProgram, toNdcX(barLeft), toNdcY(barTop + barHeight),
-                        toNdcX(barLeft + barWidth), toNdcY(barTop), FLIP_Y);
+                        toNdcX(barLeft + canvasWidth), toNdcY(barTop), FLIP_Y);
                 if (!loggedFrame) {
                     loggedFrame = true;
                     RouteAlertsBarPatch.reportOnce("drawn", "bar drawn at x=" + Math.round(barLeft) + " y="
