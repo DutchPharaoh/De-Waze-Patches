@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/DutchPharaoh/De-Waze-Patches/compare/v1.1.0...v1.2.0) (2026-11-17)
+
+### ✨ New Features
+
+* **alerts bar:** Show the distance under each report, larger icons ([10ed464](https://github.com/DutchPharaoh/De-Waze-Patches/commit/10ed464cf75ffc72cf7e953f21126f1047629bd9))
+
 ## [1.1.0](https://github.com/DutchPharaoh/De-Waze-Patches/compare/v1.0.0...v1.1.0) (2026-11-17)
 
 ### ✨ New Features
