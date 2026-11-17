@@ -273,7 +273,7 @@ public final class RouteAlertsBarPatch {
         static Bitmap bitmapOrEmpty() {
             Bitmap b = bitmap;
             if (b == null && BarGl.barWidthPx > 0) {
-                b = BarPainter.paint(BarGl.barWidthPx, BarGl.barHeightPx, alerts);
+                b = BarPainter.paint(BarGl.barWidthPx, BarGl.canvasWidthPx, BarGl.barHeightPx, alerts);
                 bitmap = b;
             }
             return b;
@@ -453,7 +453,7 @@ public final class RouteAlertsBarPatch {
             if (BarGl.barWidthPx <= 0) {
                 return;
             }
-            bitmap = BarPainter.paint(BarGl.barWidthPx, BarGl.barHeightPx, alerts);
+            bitmap = BarPainter.paint(BarGl.barWidthPx, BarGl.canvasWidthPx, BarGl.barHeightPx, alerts);
         }
     }
 
@@ -469,19 +469,20 @@ public final class RouteAlertsBarPatch {
         private BarPainter() {
         }
 
-        static Bitmap paint(int barWidth, int barHeight, List<Alert> alerts) {
+        static Bitmap paint(int barWidth, int canvasWidth, int barHeight, List<Alert> alerts) {
             int width = Math.max(24, barWidth);
+            int canvasW = Math.max(width, canvasWidth);
             int height = Math.max(80, barHeight);
-            Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            Bitmap bmp = Bitmap.createBitmap(canvasW, height, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bmp);
             Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
             float radius = width / 2f;
-            float cx = width / 2f;
+            float cx = canvasW / 2f;
 
-            // Background pill.
+            // Background pill, in the middle of the (wider) canvas.
             paint.setColor(0xCC1F2226);
-            canvas.drawRoundRect(new RectF(0, 0, width, height), radius, radius, paint);
+            canvas.drawRoundRect(new RectF(cx - radius, 0, cx + radius, height), radius, radius, paint);
 
             // Track: from just above the car marker to just below the top.
             float iconSize = width * 0.82f;
@@ -493,17 +494,76 @@ public final class RouteAlertsBarPatch {
             canvas.drawRoundRect(new RectF(cx - trackWidth / 2, trackTop, cx + trackWidth / 2, trackBottom),
                     trackWidth / 2, trackWidth / 2, paint);
 
-            // Alerts: farthest first, so the nearest ends up on top.
             List<Alert> sorted = new ArrayList<>(alerts);
             Collections.sort(sorted, (a, b) -> Integer.compare(b.distanceMeters, a.distanceMeters));
-            for (Alert alert : sorted) {
-                float fraction = Math.min(1f, alert.distanceMeters / (float) WINDOW_METERS);
-                float y = trackBottom - fraction * (trackBottom - trackTop);
-                drawAlert(canvas, paint, alert, cx, y, iconSize / 2f);
+            float[] ys = new float[sorted.size()];
+            for (int i = 0; i < sorted.size(); i++) {
+                float fraction = Math.min(1f, sorted.get(i).distanceMeters / (float) WINDOW_METERS);
+                ys[i] = trackBottom - fraction * (trackBottom - trackTop);
+            }
+
+            // Distance labels under the icons, nearest first; one that would overlap a label
+            // already placed, or the car, is left out.
+            float textSize = width * 0.38f;
+            List<RectF> placed = new ArrayList<>();
+            placed.add(new RectF(0, carY - iconSize / 2f, canvasW, height));
+            List<RectF> labelRects = new ArrayList<>();
+            List<String> labelTexts = new ArrayList<>();
+            paint.setTypeface(Typeface.DEFAULT_BOLD);
+            paint.setTextSize(textSize);
+            for (int i = sorted.size() - 1; i >= 0; i--) {
+                String text = formatDistance(sorted.get(i).distanceMeters);
+                float textWidth = paint.measureText(text);
+                float padX = textSize * 0.3f;
+                float top = ys[i] + iconSize / 2f + textSize * 0.1f;
+                RectF rect = new RectF(cx - textWidth / 2f - padX, top,
+                        cx + textWidth / 2f + padX, top + textSize * 1.3f);
+                boolean free = true;
+                for (RectF other : placed) {
+                    if (RectF.intersects(rect, other)) {
+                        free = false;
+                        break;
+                    }
+                }
+                if (free) {
+                    placed.add(rect);
+                    labelRects.add(rect);
+                    labelTexts.add(text);
+                }
+            }
+
+            // Alerts: farthest first, so the nearest ends up on top.
+            for (int i = 0; i < sorted.size(); i++) {
+                drawAlert(canvas, paint, sorted.get(i), cx, ys[i], iconSize / 2f);
+            }
+            for (int i = 0; i < labelRects.size(); i++) {
+                drawLabel(canvas, paint, labelRects.get(i), labelTexts.get(i), textSize);
             }
 
             drawCar(canvas, paint, cx, carY, iconSize / 2f);
             return bmp;
+        }
+
+        private static void drawLabel(Canvas canvas, Paint paint, RectF rect, String text, float textSize) {
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(0xE6303438);
+            float r = rect.height() * 0.3f;
+            canvas.drawRoundRect(rect, r, r, paint);
+            paint.setColor(Color.WHITE);
+            paint.setTextAlign(Paint.Align.CENTER);
+            paint.setTypeface(Typeface.DEFAULT_BOLD);
+            paint.setTextSize(textSize);
+            Paint.FontMetrics fm = paint.getFontMetrics();
+            canvas.drawText(text, rect.centerX(), rect.centerY() - (fm.ascent + fm.descent) / 2f, paint);
+        }
+
+        /** "800 m" below 1 km, "6,6 km" above; steps of 100 m, like Flitsmeister. */
+        static String formatDistance(int meters) {
+            int hundreds = Math.max(0, Math.round(meters / 100f));
+            if (hundreds < 10) {
+                return (hundreds * 100) + " m";
+            }
+            return (hundreds / 10) + "," + (hundreds % 10) + " km";
         }
 
         private static void drawCar(Canvas canvas, Paint paint, float cx, float cy, float r) {
