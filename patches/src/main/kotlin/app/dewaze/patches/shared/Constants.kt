@@ -7,7 +7,7 @@ import app.morphe.patcher.patch.Compatibility
 object Constants {
     /**
      * The extension uses obfuscated Waze names that were checked against 5.27.4.900 only.
-     * Re-check them (see FavoritesOnMapPatch.java) before adding another version.
+     * Re-check them (see the "Obfuscated names" regions in the extension) before adding another version.
      */
     val COMPATIBILITY_WAZE = Compatibility(
         name = "Waze",
