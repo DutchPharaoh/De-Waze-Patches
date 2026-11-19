@@ -483,9 +483,10 @@ public final class RouteAlertsBarPatch {
             Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
             float radius = width / 2f;
-            float cx = canvasW / 2f;
+            // The bar is at the right of the canvas; the distance labels go to its left.
+            float cx = canvasW - radius;
 
-            // Background pill, in the middle of the (wider) canvas.
+            // Background pill.
             paint.setColor(0xCC1F2226);
             canvas.drawRoundRect(new RectF(cx - radius, 0, cx + radius, height), radius, radius, paint);
 
@@ -507,31 +508,35 @@ public final class RouteAlertsBarPatch {
                 ys[i] = trackBottom - fraction * (trackBottom - trackTop);
             }
 
-            // Distance labels under the icons, nearest first; one that would overlap a label
-            // already placed, or the car, is left out.
-            float textSize = width * 0.38f;
-            List<RectF> placed = new ArrayList<>();
-            placed.add(new RectF(0, carY - iconSize / 2f, canvasW, height));
+            // Distance labels left of the icons, at the same height ("4,2" over "km"), so they never
+            // hit the car marker. Nearest first; one that would overlap a label already placed is
+            // left out.
+            float numberSize = width * 0.36f;
+            float unitSize = width * 0.27f;
+            float labelRight = cx - radius - width * 0.06f;
             List<RectF> labelRects = new ArrayList<>();
-            List<String> labelTexts = new ArrayList<>();
-            paint.setTypeface(Typeface.DEFAULT_BOLD);
-            paint.setTextSize(textSize);
+            List<String[]> labelTexts = new ArrayList<>();
             for (int i = sorted.size() - 1; i >= 0; i--) {
-                String text = formatDistance(sorted.get(i).distanceMeters);
-                float textWidth = paint.measureText(text);
-                float padX = textSize * 0.3f;
-                float top = ys[i] + iconSize / 2f + textSize * 0.1f;
-                RectF rect = new RectF(cx - textWidth / 2f - padX, top,
-                        cx + textWidth / 2f + padX, top + textSize * 1.3f);
+                String[] text = splitDistance(sorted.get(i).distanceMeters);
+                paint.setTypeface(Typeface.DEFAULT_BOLD);
+                paint.setTextSize(numberSize);
+                float textWidth = paint.measureText(text[0]);
+                paint.setTypeface(Typeface.DEFAULT);
+                paint.setTextSize(unitSize);
+                textWidth = Math.max(textWidth, paint.measureText(text[1]));
+                float padX = numberSize * 0.3f;
+                float labelHeight = numberSize * 1.05f + unitSize * 1.15f + numberSize * 0.3f;
+                float top = Math.max(0, Math.min(height - labelHeight, ys[i] - labelHeight / 2f));
+                RectF rect = new RectF(Math.max(0, labelRight - textWidth - 2 * padX), top,
+                        labelRight, top + labelHeight);
                 boolean free = true;
-                for (RectF other : placed) {
+                for (RectF other : labelRects) {
                     if (RectF.intersects(rect, other)) {
                         free = false;
                         break;
                     }
                 }
                 if (free) {
-                    placed.add(rect);
                     labelRects.add(rect);
                     labelTexts.add(text);
                 }
@@ -542,24 +547,36 @@ public final class RouteAlertsBarPatch {
                 drawAlert(canvas, paint, sorted.get(i), cx, ys[i], iconSize / 2f);
             }
             for (int i = 0; i < labelRects.size(); i++) {
-                drawLabel(canvas, paint, labelRects.get(i), labelTexts.get(i), textSize);
+                drawLabel(canvas, paint, labelRects.get(i), labelTexts.get(i), numberSize, unitSize);
             }
 
             drawCar(canvas, paint, cx, carY, iconSize / 2f);
             return bmp;
         }
 
-        private static void drawLabel(Canvas canvas, Paint paint, RectF rect, String text, float textSize) {
+        private static void drawLabel(Canvas canvas, Paint paint, RectF rect, String[] text,
+                float numberSize, float unitSize) {
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(0xE6303438);
-            float r = rect.height() * 0.3f;
+            float r = Math.min(rect.width(), rect.height()) * 0.3f;
             canvas.drawRoundRect(rect, r, r, paint);
             paint.setColor(Color.WHITE);
             paint.setTextAlign(Paint.Align.CENTER);
             paint.setTypeface(Typeface.DEFAULT_BOLD);
-            paint.setTextSize(textSize);
-            Paint.FontMetrics fm = paint.getFontMetrics();
-            canvas.drawText(text, rect.centerX(), rect.centerY() - (fm.ascent + fm.descent) / 2f, paint);
+            paint.setTextSize(numberSize);
+            float y = rect.top + numberSize * 0.15f - paint.ascent();
+            canvas.drawText(text[0], rect.centerX(), y, paint);
+            paint.setTypeface(Typeface.DEFAULT);
+            paint.setTextSize(unitSize);
+            paint.setColor(0xFFDADCE0);
+            canvas.drawText(text[1], rect.centerX(), y + unitSize * 1.15f, paint);
+        }
+
+        /** {"800", "m"} below 1 km, {"6,6", "km"} above; the two lines of a bar label. */
+        static String[] splitDistance(int meters) {
+            String text = formatDistance(meters);
+            int space = text.lastIndexOf(' ');
+            return new String[]{text.substring(0, space), text.substring(space + 1)};
         }
 
         /** "800 m" below 1 km, "6,6 km" above; steps of 100 m, like Flitsmeister. */

@@ -10,7 +10,7 @@ A collection of Morphe patches that add features to Waze.
 - **Alerts bar in Android Auto** (experimental): a vertical bar on the right of the Android Auto
   map with the reports on your route in the next 10 km (speed cameras, police, accidents, jams,
   hazards, closures). Your car is at the bottom; the higher an icon, the farther away it is, with
-  the distance under it (in steps of 100 m).
+  the distance to its left (in steps of 100 m).
   In a section control zone (trajectcontrole) a pill above the speedometer shows the speed limit,
   your average speed so far (green, orange or red) and the distance left.
   The bar's position is tuned for one car screen so far.
