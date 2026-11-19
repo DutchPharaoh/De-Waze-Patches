@@ -46,7 +46,7 @@ final class BarGl {
     /** Fallback while the visible area is not known: centre from the right edge of the surface. */
     static final float BAR_CENTER_FROM_RIGHT_DP = 38f;
     static final float BAR_WIDTH_DP = 44f;
-    /** Width of the painted area: the bar plus room for the distance labels, which are wider. */
+    /** Width of the painted area: the bar plus room for the distance labels on its left. */
     static final float BAR_CANVAS_WIDTH_DP = 92f;
     /** Just below the top-right button row (search, routes, sound). */
     static final float BAR_TOP_DP = 82f;
@@ -308,8 +308,8 @@ final class BarGl {
                     GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
                     uploaded = bitmap;
                 }
-                // The bitmap is wider than the bar (labels); the bar sits in its middle.
-                float barLeft = barCenterX() - canvasWidth / 2f;
+                // The bitmap is wider than the bar: the bar is at its right, the labels to the left.
+                float barLeft = barCenterX() + barWidth / 2f - canvasWidth;
                 drawQuad(barProgram, toNdcX(barLeft), toNdcY(barTop + barHeight),
                         toNdcX(barLeft + canvasWidth), toNdcY(barTop), FLIP_Y);
                 if (!loggedFrame) {
