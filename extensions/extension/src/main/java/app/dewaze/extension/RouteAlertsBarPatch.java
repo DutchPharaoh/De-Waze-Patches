@@ -135,6 +135,11 @@ public final class RouteAlertsBarPatch {
                     return existing;
                 }
             }
+            try {
+                AverageSpeedZone.registerTestReceiver(BarPainter.appContext());
+            } catch (Throwable t) {
+                Log.w(TAG, "Zone test receiver", t);
+            }
             Class<?> c = container.getClass();
             Surface surface = (Surface) c.getMethod("getSurface").invoke(container);
             int width = (Integer) c.getMethod("getWidth").invoke(container);

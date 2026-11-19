@@ -11,6 +11,8 @@ A collection of Morphe patches that add features to Waze.
   map with the reports on your route in the next 10 km (speed cameras, police, accidents, jams,
   hazards, closures). Your car is at the bottom; the higher an icon, the farther away it is, with
   the distance under it (in steps of 100 m).
+  In a section control zone (trajectcontrole) a pill above the speedometer shows the speed limit,
+  your average speed so far (green, orange or red) and the distance left.
   The bar's position is tuned for one car screen so far.
 
 Supported version: Waze 5.27.4.900. The patches rely on obfuscated Waze internals,
@@ -79,6 +81,13 @@ Waze puts extra buttons where the bar would go. Its size is in dp, and it follow
 the visible area that Android Auto reports, so it stays in the button column in split screen too. The reports come from `RtAlertsNativeManager.getRtAlertsOnRoute()`, polled every
 2 seconds while the car map is visible; speed cameras (types 1000 and up) are included too.
 Code: `RouteAlertsBarPatch.java` (hooks, data and painting) and `BarGl.java` (compositor and layout).
+The average speed pill (`AverageSpeedZone.java`) uses Waze's zone callbacks
+(`NavigationInfoNativeManagerBase.onAverageSpeedCamZone*JNI` and the segment insights) for the distance
+left; Waze does not report the average, so it is the distance driven since the zone started divided by
+the time. The speed limit comes from Waze's speedometer state. The compositor draws the pill too.
+To simulate a zone: `adb shell setprop log.tag.DeWazeAlertsBar DEBUG`, restart Waze, then
+`adb shell am broadcast -a app.dewaze.ZONE_TEST -p com.waze --ei left 5000 --ei limit 100`
+(send a lower `left` a few seconds later; `--ez clear true` ends it).
 Test without a car with the Android Auto Desktop Head Unit (DHU) from the Android SDK.
 Logs: `adb logcat -s DeWazeAlertsBar`.
 
