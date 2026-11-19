@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/DutchPharaoh/De-Waze-Patches/compare/v1.2.0...v1.3.0) (2026-11-19)
+
+### ✨ New Features
+
+* **alerts bar:** Average speed in section control zones ([3a7a408](https://github.com/DutchPharaoh/De-Waze-Patches/commit/3a7a40893f371e23bcb8d75d0963f8628bfc65b8))
+
 ## [1.2.0](https://github.com/DutchPharaoh/De-Waze-Patches/compare/v1.1.0...v1.2.0) (2026-11-17)
 
 ### ✨ New Features

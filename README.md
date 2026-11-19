@@ -24,7 +24,7 @@ Add `https://github.com/DutchPharaoh/De-Waze-Patches` as a patch source in Morph
 and select the patches you want when patching Waze.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.0](https://github.com/DutchPharaoh/De-Waze-Patches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.3.0](https://github.com/DutchPharaoh/De-Waze-Patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -38,7 +38,7 @@ and select the patches you want when patching Waze.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Alerts bar in Android Auto](#alerts-bar-in-android-auto) | Shows a vertical bar on the right of the Android Auto map with the reports on your route in the next 10 km: speed cameras, police, accidents, jams, hazards and closures. |  |
+| [Alerts bar in Android Auto](#alerts-bar-in-android-auto) | Shows a vertical bar on the right of the Android Auto map with the reports on your route in the next 10 km: speed cameras, police, accidents, jams, hazards and closures. In a section control zone it also shows your average speed, the speed limit and the distance left. |  |
 | [Favorites on map](#favorites-on-map) | Always shows your favorites as stars with their name on the map, on the phone and in Android Auto, also when not navigating. |  |
 
 </details>
