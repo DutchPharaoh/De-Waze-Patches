@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/DutchPharaoh/De-Waze-Patches/compare/v1.3.0...v1.3.1) (2026-11-19)
+
+### 🐛 Bug Fixes
+
+* **alerts bar:** Put the distance left of each report ([74d836b](https://github.com/DutchPharaoh/De-Waze-Patches/commit/74d836b0c079ff42e3ee5661051efef464fff559))
+
 ## [1.3.0](https://github.com/DutchPharaoh/De-Waze-Patches/compare/v1.2.0...v1.3.0) (2026-11-19)
 
 ### ✨ New Features

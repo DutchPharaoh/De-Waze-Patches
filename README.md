@@ -24,7 +24,7 @@ Add `https://github.com/DutchPharaoh/De-Waze-Patches` as a patch source in Morph
 and select the patches you want when patching Waze.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/DutchPharaoh/De-Waze-Patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.3.1](https://github.com/DutchPharaoh/De-Waze-Patches/releases/tag/v1.3.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
