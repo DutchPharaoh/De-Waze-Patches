@@ -16,11 +16,20 @@ private const val SURFACE_CONTAINER = "Landroidx/car/app/SurfaceContainer;"
  */
 private const val CAR_SURFACE_FAN_OUT = "Lcom/waze/car_lib/k/a/g;"
 
+private const val ZONE_EXTENSION_CLASS = "Lapp/dewaze/extension/AverageSpeedZone;"
+private const val NAVIGATION_INFO_BASE = "Lcom/waze/navigate/NavigationInfoNativeManagerBase;"
+private const val INSIGHTS_INFRA_BASE = "Lcom/waze/insights_infra/InsightsInfraNativeManagerBase;"
+
+/** Waze's speedometer state: (speed, units, isUsStyle, maxSpeedRoad, 4 flags); obfuscated, 5.27.4.900. */
+private const val SPEEDOMETER_STATE = "Lcom/waze/bz/i;"
+private const val SPEEDOMETER_STATE_INIT = "(ILjava/lang/String;ZIZZZZ)V"
+
 @Suppress("unused")
 val routeAlertsBarPatch = bytecodePatch(
     name = "Alerts bar in Android Auto",
     description = "Shows a vertical bar on the right of the Android Auto map with the reports " +
-        "on your route in the next 10 km: speed cameras, police, accidents, jams, hazards and closures.",
+        "on your route in the next 10 km: speed cameras, police, accidents, jams, hazards and closures. " +
+        "In a section control zone it also shows your average speed, the speed limit and the distance left.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
@@ -65,5 +74,30 @@ val routeAlertsBarPatch = bytecodePatch(
             areaHooks++
         }
         if (areaHooks != 2) throw PatchException("Car area callbacks not found ($areaHooks of 2)")
+
+        // Section control: the zone reports (native callbacks, not obfuscated) and the speed limit.
+        mutableClassDefBy(NAVIGATION_INFO_BASE).methods.apply {
+            single { it.name == "onAverageSpeedCamZoneUpdateJNI" }.addInstructions(
+                0,
+                "invoke-static/range { p1 .. p1 }, $ZONE_EXTENSION_CLASS->onZoneUpdate([B)V",
+            )
+            single { it.name == "onAverageSpeedCamZoneClearJNI" }.addInstructions(
+                0,
+                "invoke-static { }, $ZONE_EXTENSION_CLASS->onZoneClear()V",
+            )
+        }
+        mutableClassDefBy(INSIGHTS_INFRA_BASE).methods
+            .single { it.name == "onSegmentInsightUpdatedJNI" }
+            .addInstructions(0, "invoke-static/range { p1 .. p1 }, $ZONE_EXTENSION_CLASS->onSegmentInsights([B)V")
+
+        val speedometerInit = mutableClassDefBy(SPEEDOMETER_STATE).methods.singleOrNull { method ->
+            method.name == "<init>" &&
+                method.parameterTypes.joinToString("", "(", ")V") == SPEEDOMETER_STATE_INIT
+        } ?: throw PatchException("Speedometer state constructor not found")
+        // p4 is maxSpeedRoad. Before the super call, but only a parameter register is read.
+        speedometerInit.addInstructions(
+            0,
+            "invoke-static/range { p4 .. p4 }, $ZONE_EXTENSION_CLASS->onSpeedometerState(I)V",
+        )
     }
 }

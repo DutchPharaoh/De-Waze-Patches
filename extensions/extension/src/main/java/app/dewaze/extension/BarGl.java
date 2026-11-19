@@ -52,6 +52,12 @@ final class BarGl {
     static final float BAR_TOP_DP = 82f;
     /** Distance from the bottom of the map: just above the +/- zoom button. */
     static final float BAR_BOTTOM_FROM_BOTTOM_DP = 158f;
+    /** Average speed pill: its right edge from the visible area's right edge (above the speedometer). */
+    static final float ZONE_RIGHT_FROM_VISIBLE_RIGHT_DP = 8f;
+    /** Fallback while the visible area is not known: right edge from the right of the surface. */
+    static final float ZONE_RIGHT_FROM_RIGHT_DP = 96f;
+    /** Bottom of the pill from the bottom of the map: just above the speedometer and speed limit. */
+    static final float ZONE_BOTTOM_FROM_BOTTOM_DP = 140f;
 
     // endregion
 
@@ -137,7 +143,9 @@ final class BarGl {
         private int barProgram;
         private int oesTexture;
         private int barTexture;
+        private int zoneTexture;
         private Bitmap uploaded;
+        private Bitmap uploadedZone;
         private FloatBuffer quad;
         private volatile boolean released;
         private boolean loggedFrame;
@@ -231,6 +239,7 @@ final class BarGl {
 
             oesTexture = newTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES);
             barTexture = newTexture(GLES20.GL_TEXTURE_2D);
+            zoneTexture = newTexture(GLES20.GL_TEXTURE_2D);
 
             surfaceTexture = new SurfaceTexture(oesTexture);
             surfaceTexture.setDefaultBufferSize(width, height);
@@ -241,6 +250,8 @@ final class BarGl {
             canvasWidthPx = Math.round(canvasWidth);
             barHeightPx = Math.round(barHeight);
             RouteAlertsBarPatch.AlertsSource.invalidate();
+            AverageSpeedZone.dpPx = px;
+            AverageSpeedZone.repaint();
             RouteAlertsBarPatch.reportOnce("surface-" + width + "x" + height,
                     "car surface " + width + "x" + height + " (bar " + barWidthPx + "x" + barHeightPx + "), compositor ready");
             return true;
@@ -309,6 +320,23 @@ final class BarGl {
                 }
             }
 
+            // The average speed pill, while in a section control zone.
+            Bitmap zone = AverageSpeedZone.bitmapIfFresh();
+            if (zone != null) {
+                GLES20.glEnable(GLES20.GL_BLEND);
+                GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+                GLES20.glUseProgram(barProgram);
+                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, zoneTexture);
+                if (uploadedZone != zone) {
+                    GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, zone, 0);
+                    uploadedZone = zone;
+                }
+                float right = zoneRight();
+                float bottom = height - ZONE_BOTTOM_FROM_BOTTOM_DP * px;
+                drawQuad(barProgram, toNdcX(right - zone.getWidth()), toNdcY(bottom),
+                        toNdcX(right), toNdcY(bottom - zone.getHeight()), FLIP_Y);
+            }
+
             EGLExt.eglPresentationTimeANDROID(display, eglSurface, surfaceTexture.getTimestamp());
             EGL14.eglSwapBuffers(display, eglSurface);
         }
@@ -331,6 +359,15 @@ final class BarGl {
                 return Math.min(width - barWidth / 2f, visible.right + BAR_CENTER_FROM_VISIBLE_RIGHT_DP * px);
             }
             return width - BAR_CENTER_FROM_RIGHT_DP * px;
+        }
+
+        /** Right edge of the average speed pill: above the speedometer, also in split screen. */
+        private float zoneRight() {
+            android.graphics.Rect visible = RouteAlertsBarPatch.visibleArea;
+            if (visible != null && visible.right > visible.left && visible.right <= width) {
+                return visible.right - ZONE_RIGHT_FROM_VISIBLE_RIGHT_DP * px;
+            }
+            return width - ZONE_RIGHT_FROM_RIGHT_DP * px;
         }
 
         private float toNdcX(float x) {
